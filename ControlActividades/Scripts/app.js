@@ -5,7 +5,6 @@ var App = {
     icons: ['\uD83D\uDCBB', '\uD83D\uDE80', '\uD83D\uDCCB', '\uD83D\uDCDD', '\uD83C\uDFA8', '\uD83D\uDD27', '\uD83D\uDCCA', '\uD83E\uDD1D', '\uD83D\uDCDA', '\uD83C\uDFAF', '\uD83D\uDCA1', '\u2B50', '\uD83D\uDD25', '\uD83D\uDCAA', '\uD83C\uDFC6', '\uD83C\uDF89', '\uD83D\uDCDE', '\u2709\uFE0F', '\uD83D\uDCC2', '\u2699\uFE0F', '\uD83D\uDCC8', '\uD83C\uDF93', '\uD83C\uDFD7\uFE0F', '\uD83C\uDFAC'],
 
     init: function () {
-        $('#loginForm').on('submit', function (e) { e.preventDefault(); App.handleLogin(); });
         $('#logoutBtn').on('click', function () { App.handleLogout(); });
         $('.nav-item').on('click', function (e) { e.preventDefault(); App.switchSection($(this).data('section')); });
         $('#projectForm').on('submit', function (e) { e.preventDefault(); App.handleNewProject(); });
@@ -28,10 +27,7 @@ var App = {
     },
 
     showLogin: function () {
-        $('#loginView').show();
-        $('#appView').hide();
-        $('#loginUsername, #loginPassword').val('');
-        $('#loginError').text('');
+        window.location.href = '/Home/Index';
     },
 
     showApp: function (username) {
@@ -40,32 +36,6 @@ var App = {
         $('#currentUserDisplay').text(username);
         App.refreshSidebar();
         App.switchSection('dashboard');
-    },
-
-    handleLogin: function () {
-        var username = $('#loginUsername').val().trim();
-        var password = $('#loginPassword').val().trim();
-        var errorEl = $('#loginError');
-        if (!username || !password) {
-            errorEl.text('Ingresa usuario y contraseña');
-            return;
-        }
-        $.ajax({
-            type: 'POST',
-            url: '/Account/Login',
-            data: { username: username, password: password },
-            success: function (data) {
-                if (data.success) {
-                    errorEl.text('');
-                    App.showApp(data.user.username);
-                } else {
-                    errorEl.text(data.error || 'Usuario o contraseña incorrectos');
-                }
-            },
-            error: function () {
-                errorEl.text('Error al iniciar sesión');
-            }
-        });
     },
 
     handleLogout: function () {

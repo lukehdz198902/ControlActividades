@@ -1,7 +1,6 @@
 using System;
 using System.Web;
 using System.Web.Mvc;
-using System.Web.Security;
 using ControlActividades.Services;
 
 namespace ControlActividades.Controllers
@@ -10,29 +9,26 @@ namespace ControlActividades.Controllers
     {
         private readonly DatabaseService _db = new DatabaseService();
 
-        public ActionResult Login()
-        {
-            return View();
-        }
-
         [HttpPost]
-        public JsonResult Login(string username, string password)
+        public ActionResult Login(string username, string password)
         {
             if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
-                return Json(new { success = false, error = "Campos requeridos" });
+            {
+                ViewBag.Error = "Campos requeridos";
+                return View("~/Views/Home/Index.cshtml");
+            }
 
             var user = _db.ValidateUser(username);
             if (user == null || !PasswordHelper.VerifyPassword(password, user.PasswordHash))
-                return Json(new { success = false, error = "Usuario o contraseña incorrectos" });
+            {
+                ViewBag.Error = "Usuario o contraseña incorrectos";
+                return View("~/Views/Home/Index.cshtml");
+            }
 
             Session["UserId"] = user.Id;
             Session["Username"] = user.Username;
 
-            var ticket = new FormsAuthenticationTicket(1, user.Username, DateTime.Now, DateTime.Now.AddDays(7), false, user.Id.ToString());
-            var cookie = new HttpCookie(FormsAuthentication.FormsCookieName, FormsAuthentication.Encrypt(ticket));
-            Response.Cookies.Add(cookie);
-
-            return Json(new { success = true, user = new { id = user.Id, username = user.Username } });
+            return RedirectToAction("Index", "Home");
         }
 
         [HttpPost]
@@ -40,7 +36,6 @@ namespace ControlActividades.Controllers
         {
             Session.Clear();
             Session.Abandon();
-            FormsAuthentication.SignOut();
             return Json(new { success = true });
         }
 
