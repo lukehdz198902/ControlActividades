@@ -14,13 +14,7 @@ namespace ControlActividades.Controllers
         private readonly DatabaseService _db = new DatabaseService();
         private readonly string[] _months = { "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre" };
 
-        private int GetUserId()
-        {
-            var session = System.Web.HttpContext.Current?.Session;
-            if (session == null) return 0;
-            var user = session["UserId"];
-            return user != null ? (int)user : 0;
-        }
+        private int GetUserId() => AccountController.GetUserIdFromCookie();
 
         [HttpGet]
         [Route("api/activities/project/{projectId}")]
@@ -76,7 +70,7 @@ namespace ControlActividades.Controllers
                 string.Join("\n", activities.Select(a =>
                     $"\"{a.Date:yyyy-MM-dd}\",\"{a.Description}\",\"{a.Hours}\",\"{a.Minutes}\",\"{a.Icon}\",\"{a.Importance}\",\"{a.Username}\""));
 
-            var username = System.Web.HttpContext.Current.Session["Username"]?.ToString() ?? "user";
+            var username = AccountController.GetUsernameFromCookie();
             var filename = $"{project.Name}_{y}_{m:D2}.csv";
 
             var response = new HttpResponseMessage(HttpStatusCode.OK)

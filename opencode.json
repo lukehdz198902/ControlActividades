@@ -1,0 +1,9 @@
+{
+  "models": {
+    "conversation": {
+      "provider": "ollama",
+      "model": "qwen2.5-coder:7b",
+      "baseUrl": "http://localhost:11434"
+    }
+  }
+}

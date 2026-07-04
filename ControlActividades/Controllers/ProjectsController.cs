@@ -12,13 +12,7 @@ namespace ControlActividades.Controllers
     {
         private readonly DatabaseService _db = new DatabaseService();
 
-        private int GetUserId()
-        {
-            var session = System.Web.HttpContext.Current?.Session;
-            if (session == null) return 0;
-            var user = session["UserId"];
-            return user != null ? (int)user : 0;
-        }
+        private int GetUserId() => AccountController.GetUserIdFromCookie();
 
         [HttpGet]
         [Route("api/projects")]
