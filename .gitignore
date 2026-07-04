@@ -1,0 +1,39 @@
+## .NET Framework
+bin/
+obj/
+*.user
+*.suo
+*.sln.docstates
+*.userprefs
+
+## NuGet
+packages/
+*.nupkg
+
+## Visual Studio
+.vs/
+*.csproj.user
+*.dbmdl
+*.jfm
+
+## Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Bb]in/
+[Oo]bj/
+*.log
+
+## IIS
+App_Data/
+
+## SQL
+*.mdf
+*.ldf
+
+## Node (from original)
+node_modules/
+
+## Tools
+nuget.exe

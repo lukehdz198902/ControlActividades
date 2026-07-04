@@ -1,0 +1,42 @@
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar Sesión - Control de Actividades</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="@Url.Content("~/Content/style.css")" rel="stylesheet" />
+</head>
+<body>
+    <div id="loginView" style="display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,#F5F6FA 0%,#EDE9FE 50%,#E0E7FF 100%);padding:20px;">
+        <div class="login-card" style="animation:fadeUp 0.6s ease;">
+            <div class="login-header">
+                <div class="login-icon">📋</div>
+                <h1>Control de Actividades</h1>
+                <p>Ingresa tus credenciales para continuar</p>
+            </div>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="loginUsername">Usuario</label>
+                    <input type="text" id="loginUsername" placeholder="Nombre de usuario" autocomplete="username">
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">Contraseña</label>
+                    <input type="password" id="loginPassword" placeholder="Contraseña" autocomplete="current-password">
+                </div>
+                <div id="loginError" class="form-error"></div>
+                <button type="submit" class="btn btn-primary btn-full">Iniciar Sesión</button>
+            </form>
+            <div class="login-footer">
+                <p>Usuarios: lhernanb, dgarcia, creyesg, JCABELLS, OQUINTAA</p>
+            </div>
+        </div>
+    </div>
+    <div id="toast" class="toast"></div>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="@Url.Content("~/Scripts/app.js")"></script>
+</body>
+</html>
