@@ -10,15 +10,12 @@ namespace ControlActividades.Services
 
         public static string HashPassword(string password)
         {
-            var saltBytes = Encoding.UTF8.GetBytes(SALT);
-            var saltBase64 = Convert.ToBase64String(saltBytes);
+            var saltBase64 = Convert.ToBase64String(Encoding.UTF8.GetBytes(SALT));
 
-            var combined = SALT + password;
-            var combinedBytes = Encoding.UTF8.GetBytes(combined);
-            var hashBytes = SHA256.Create().ComputeHash(combinedBytes);
-            var hashBase64 = Convert.ToBase64String(hashBytes);
+            var combined = saltBase64 + password;
+            var hashBytes = SHA256.Create().ComputeHash(Encoding.UTF8.GetBytes(combined));
 
-            return $"{saltBase64}:{hashBase64}";
+            return $"{saltBase64}:{Convert.ToBase64String(hashBytes)}";
         }
 
         public static bool VerifyPassword(string password, string storedHash)
@@ -33,13 +30,10 @@ namespace ControlActividades.Services
             var saltBase64 = parts[0];
             var storedHashBase64 = parts[1];
 
-            var saltBytes = Convert.FromBase64String(saltBase64);
-            var salt = Encoding.UTF8.GetString(saltBytes);
-
-            var combined = salt + password;
-            var combinedBytes = Encoding.UTF8.GetBytes(combined);
-            var hashBytes = SHA256.Create().ComputeHash(combinedBytes);
-            var computedHashBase64 = Convert.ToBase64String(hashBytes);
+            var combined = saltBase64 + password;
+            var computedHashBase64 = Convert.ToBase64String(
+                SHA256.Create().ComputeHash(Encoding.UTF8.GetBytes(combined))
+            );
 
             return computedHashBase64 == storedHashBase64;
         }
