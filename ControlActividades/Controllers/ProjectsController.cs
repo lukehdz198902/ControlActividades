@@ -8,14 +8,15 @@ using ControlActividades.Services;
 
 namespace ControlActividades.Controllers
 {
-    [Authorize]
     public class ProjectsController : ApiController
     {
         private readonly DatabaseService _db = new DatabaseService();
 
         private int GetUserId()
         {
-            var user = System.Web.HttpContext.Current.Session["UserId"];
+            var session = System.Web.HttpContext.Current?.Session;
+            if (session == null) return 0;
+            var user = session["UserId"];
             return user != null ? (int)user : 0;
         }
 
