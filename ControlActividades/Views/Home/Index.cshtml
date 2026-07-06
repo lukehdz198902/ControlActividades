@@ -9,9 +9,11 @@
     <title>Control de Actividades</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="@Url.Content("~/Content/style.css")" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
 <body>
     <div id="loginView">
+        <canvas id="particleCanvas"></canvas>
         <div class="login-container">
             <div class="login-card">
                 <div class="login-header">
@@ -62,6 +64,20 @@
                         <span class="nav-label">Nuevo Proyecto</span>
                     </a>
                 </nav>
+                <div class="sidebar-divider" id="adminDivider" style="display:none"></div>
+                <div class="sidebar-section" id="adminNavSection" style="display:none">
+                    <h3 class="sidebar-section-title">Administración</h3>
+                    <nav class="sidebar-nav">
+                        <a href="#" class="nav-item" data-section="admin-users">
+                            <span class="nav-icon">👥</span>
+                            <span class="nav-label">Usuarios</span>
+                        </a>
+                        <a href="#" class="nav-item" data-section="admin-dashboard">
+                            <span class="nav-icon">📋</span>
+                            <span class="nav-label">Dashboard Admin</span>
+                        </a>
+                    </nav>
+                </div>
                 <div class="sidebar-divider"></div>
                 <div class="sidebar-section">
                     <h3 class="sidebar-section-title">Mis Proyectos</h3>
@@ -85,6 +101,7 @@
                         </div>
                         <button id="filterBtn" class="btn btn-primary">Filtrar</button>
                     </div>
+                    <div class="chart-container"><canvas id="dashboardChart"></canvas></div>
                     <div id="dashboardContent"></div>
                 </section>
 
@@ -175,10 +192,133 @@
                         <div id="activityListContent"></div>
                     </div>
                 </section>
+
+                <section id="adminUsersSection" class="content-section">
+                    <div class="section-header">
+                        <h2>Administrar Usuarios</h2>
+                    </div>
+                    <div class="card">
+                        <h3 class="card-title">Registrar Nuevo Usuario</h3>
+                        <form id="adminUserForm">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="adminNewUsername">Usuario</label>
+                                    <input type="text" id="adminNewUsername" placeholder="Nombre de usuario">
+                                </div>
+                                <div class="form-group">
+                                    <label for="adminNewRole">Rol</label>
+                                    <select id="adminNewRole">
+                                        <option value="user">Usuario</option>
+                                        <option value="admin">Administrador</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="adminNewPassword">Contraseña</label>
+                                    <input type="password" id="adminNewPassword" placeholder="Contraseña">
+                                </div>
+                                <div class="form-group">
+                                    <label for="adminNewPasswordConfirm">Confirmar Contraseña</label>
+                                    <input type="password" id="adminNewPasswordConfirm" placeholder="Repetir contraseña">
+                                </div>
+                            </div>
+                            <div id="adminUserError" class="form-error"></div>
+                            <button type="submit" class="btn btn-primary">Crear Usuario</button>
+                        </form>
+                    </div>
+                    <div class="card">
+                        <h3 class="card-title">Usuarios Registrados</h3>
+                        <div id="adminUsersList"></div>
+                    </div>
+                </section>
+
+                <section id="adminDashboardSection" class="content-section">
+                    <div class="section-header">
+                        <h2>Dashboard de Administración</h2>
+                    </div>
+                    <div class="filter-bar">
+                        <div class="filter-group">
+                            <label>Mes</label>
+                            <select id="adminFilterMonth"></select>
+                        </div>
+                        <div class="filter-group">
+                            <label>Año</label>
+                            <select id="adminFilterYear"></select>
+                        </div>
+                        <button id="adminFilterBtn" class="btn btn-primary">Filtrar</button>
+                    </div>
+                    <div class="chart-container"><canvas id="adminDashboardChart"></canvas></div>
+                    <div id="adminDashboardContent"></div>
+                </section>
+
+                <section id="adminUserActivitiesSection" class="content-section">
+                    <div class="section-header">
+                        <button id="backToAdminDashboard" class="btn btn-ghost">← Volver</button>
+                        <h2 id="adminUserActivitiesTitle">Actividades del Usuario</h2>
+                    </div>
+                    <div id="adminUserActivitiesContent"></div>
+                </section>
             </main>
         </div>
     </div>
 
+    <div id="passwordModal" class="modal-overlay" style="display:none">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>Cambiar Contraseña</h3>
+                <button type="button" class="modal-close" id="passwordModalClose">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p id="passwordModalUser" style="margin-bottom:16px;color:var(--text-secondary);font-size:14px;"></p>
+                <form id="passwordModalForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="pwdModalNewPassword">Nueva Contraseña</label>
+                            <input type="password" id="pwdModalNewPassword" placeholder="Nueva contraseña">
+                        </div>
+                        <div class="form-group">
+                            <label for="pwdModalConfirmPassword">Confirmar Contraseña</label>
+                            <input type="password" id="pwdModalConfirmPassword" placeholder="Repetir contraseña">
+                        </div>
+                    </div>
+                    <div id="pwdModalError" class="form-error"></div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-ghost" id="passwordModalCancel">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="passwordModalSave">Guardar</button>
+            </div>
+        </div>
+    </div>
+    <div id="editUserModal" class="modal-overlay" style="display:none">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>Editar Usuario</h3>
+                <button type="button" class="modal-close" id="editUserModalClose">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="editUserForm">
+                    <div class="form-group">
+                        <label for="editUsername">Nombre de Usuario</label>
+                        <input type="text" id="editUsername" placeholder="Usuario">
+                    </div>
+                    <div class="form-group">
+                        <label for="editRole">Rol</label>
+                        <select id="editRole">
+                            <option value="user">Usuario</option>
+                            <option value="admin">Administrador</option>
+                        </select>
+                    </div>
+                    <div id="editUserError" class="form-error"></div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-ghost" id="editUserModalCancel">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="editUserModalSave">Guardar</button>
+            </div>
+        </div>
+    </div>
     <div id="toast" class="toast"></div>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="@Url.Content("~/Scripts/app.js")"></script>

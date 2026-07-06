@@ -34,6 +34,7 @@ namespace ControlActividades.Services
                             Id = (int)reader["Id"],
                             Username = (string)reader["Username"],
                             PasswordHash = (string)reader["PasswordHash"],
+                            Role = reader["Role"] != DBNull.Value ? (string)reader["Role"] : "user",
                             CreatedAt = (DateTime)reader["CreatedAt"]
                         };
                     }
@@ -198,9 +199,9 @@ namespace ControlActividades.Services
                             Name = (string)reader["Name"],
                             UserId = (int)reader["UserId"],
                             CreatedAt = (DateTime)reader["CreatedAt"],
-                            MonthHours = Math.Round((double)reader["MonthHours"], 2),
-                            TotalHours = Math.Round((double)reader["TotalHours"], 2),
-                            ActivityCount = (int)reader["ActivityCount"]
+                            MonthHours = reader["MonthHours"] != DBNull.Value ? Math.Round(Convert.ToDouble(reader["MonthHours"]), 2) : 0,
+                            TotalHours = reader["TotalHours"] != DBNull.Value ? Math.Round(Convert.ToDouble(reader["TotalHours"]), 2) : 0,
+                            ActivityCount = reader["ActivityCount"] != DBNull.Value ? Convert.ToInt32(reader["ActivityCount"]) : 0
                         });
                     }
                 }
@@ -226,6 +227,183 @@ namespace ControlActividades.Services
                     while (reader.Read())
                     {
                         activities.Add(MapActivity(reader));
+                    }
+                }
+            }
+            return activities;
+        }
+
+        public List<User> GetAllUsers()
+        {
+            var users = new List<User>();
+            using (var conn = new SqlConnection(_connectionString))
+            using (var cmd = new SqlCommand("usp_GetAllUsers", conn))
+            {
+                cmd.CommandType = CommandType.StoredProcedure;
+                conn.Open();
+                using (var reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        users.Add(new User
+                        {
+                            Id = (int)reader["Id"],
+                            Username = (string)reader["Username"],
+                            Role = reader["Role"] != DBNull.Value ? (string)reader["Role"] : "user",
+                            CreatedAt = (DateTime)reader["CreatedAt"]
+                        });
+                    }
+                }
+            }
+            return users;
+        }
+
+        public User CreateUser(string username, string passwordHash, string role)
+        {
+            using (var conn = new SqlConnection(_connectionString))
+            using (var cmd = new SqlCommand("usp_CreateUser", conn))
+            {
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@Username", username);
+                cmd.Parameters.AddWithValue("@PasswordHash", passwordHash);
+                cmd.Parameters.AddWithValue("@Role", role);
+
+                conn.Open();
+                using (var reader = cmd.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        var success = (bool)reader["Success"];
+                        if (!success) return null;
+
+                        return new User
+                        {
+                            Id = (int)reader["Id"],
+                            Username = (string)reader["Username"],
+                            Role = (string)reader["Role"],
+                            CreatedAt = (DateTime)reader["CreatedAt"]
+                        };
+                    }
+                }
+            }
+            return null;
+        }
+
+        public bool UpdateUserPassword(int userId, string newPasswordHash)
+        {
+            using (var conn = new SqlConnection(_connectionString))
+            using (var cmd = new SqlCommand("usp_UpdateUserPassword", conn))
+            {
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@UserId", userId);
+                cmd.Parameters.AddWithValue("@NewPasswordHash", newPasswordHash);
+
+                conn.Open();
+                var rows = (int)cmd.ExecuteScalar();
+                return rows > 0;
+            }
+        }
+
+        public List<AdminDashboardItem> GetAdminDashboard(int month, int year)
+        {
+            var items = new List<AdminDashboardItem>();
+            using (var conn = new SqlConnection(_connectionString))
+            using (var cmd = new SqlCommand("usp_GetAdminDashboard", conn))
+            {
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@Month", month);
+                cmd.Parameters.AddWithValue("@Year", year);
+
+                conn.Open();
+                using (var reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        items.Add(new AdminDashboardItem
+                        {
+                            UserId = (int)reader["UserId"],
+                            Username = (string)reader["Username"],
+                            ProjectId = (int)reader["ProjectId"],
+                            ProjectName = (string)reader["ProjectName"],
+                            TotalHours = Math.Round(Convert.ToDouble(reader["TotalHours"]), 2),
+                            ActivityCount = (int)reader["ActivityCount"]
+                        });
+                    }
+                }
+            }
+            return items;
+        }
+
+        public User UpdateUser(int userId, string newUsername, string newRole)
+        {
+            using (var conn = new SqlConnection(_connectionString))
+            using (var cmd = new SqlCommand("usp_UpdateUser", conn))
+            {
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@UserId", userId);
+                cmd.Parameters.AddWithValue("@NewUsername", newUsername);
+                cmd.Parameters.AddWithValue("@NewRole", newRole);
+
+                conn.Open();
+                using (var reader = cmd.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        var hasSuccess = false;
+                        for (int i = 0; i < reader.FieldCount; i++)
+                        {
+                            if (reader.GetName(i) == "Success")
+                            {
+                                hasSuccess = true;
+                                var success = (bool)reader["Success"];
+                                if (!success) return null;
+                                break;
+                            }
+                        }
+                        if (!hasSuccess)
+                        {
+                            return new User
+                            {
+                                Id = (int)reader["Id"],
+                                Username = (string)reader["Username"],
+                                Role = (string)reader["Role"],
+                                CreatedAt = (DateTime)reader["CreatedAt"]
+                            };
+                        }
+                    }
+                }
+            }
+            return null;
+        }
+
+        public Activity MapActivityFull(SqlDataReader reader)
+        {
+            var a = MapActivity(reader);
+            for (int i = 0; i < reader.FieldCount; i++)
+            {
+                if (reader.GetName(i) == "ProjectName")
+                    a.ProjectName = (string)reader["ProjectName"];
+            }
+            return a;
+        }
+
+        public List<Activity> GetUserActivities(int userId, int month, int year)
+        {
+            var activities = new List<Activity>();
+            using (var conn = new SqlConnection(_connectionString))
+            using (var cmd = new SqlCommand("usp_GetUserActivities", conn))
+            {
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@UserId", userId);
+                cmd.Parameters.AddWithValue("@Month", month);
+                cmd.Parameters.AddWithValue("@Year", year);
+
+                conn.Open();
+                using (var reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        activities.Add(MapActivityFull(reader));
                     }
                 }
             }

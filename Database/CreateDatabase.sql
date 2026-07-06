@@ -18,6 +18,7 @@ BEGIN
         [Id] INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
         [Username] NVARCHAR(100) NOT NULL UNIQUE,
         [PasswordHash] NVARCHAR(500) NOT NULL,
+        [Role] NVARCHAR(20) NOT NULL DEFAULT 'user',
         [CreatedAt] DATETIME2 NOT NULL DEFAULT GETDATE()
     );
 END

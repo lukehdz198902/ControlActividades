@@ -27,7 +27,8 @@ namespace ControlActividades.Controllers
 
             Session["UserId"] = user.Id;
             Session["Username"] = user.Username;
-            SetAuthCookie(user.Id.ToString(), user.Username);
+            Session["Role"] = user.Role;
+            SetAuthCookie(user.Id.ToString(), user.Username, user.Role);
 
             return RedirectToAction("Index", "Home");
         }
@@ -45,12 +46,13 @@ namespace ControlActividades.Controllers
         {
             var userId = GetUserIdFromCookie();
             var username = GetUsernameFromCookie();
+            var role = GetRoleFromCookie();
             if (userId > 0 && !string.IsNullOrEmpty(username))
             {
                 return Json(new
                 {
                     loggedIn = true,
-                    user = new { id = userId, username }
+                    user = new { id = userId, username, role }
                 }, JsonRequestBehavior.AllowGet);
             }
             if (Session["UserId"] != null)
@@ -58,13 +60,13 @@ namespace ControlActividades.Controllers
                 return Json(new
                 {
                     loggedIn = true,
-                    user = new { id = (int)Session["UserId"], username = (string)Session["Username"] }
+                    user = new { id = (int)Session["UserId"], username = (string)Session["Username"], role = (string)Session["Role"] ?? "user" }
                 }, JsonRequestBehavior.AllowGet);
             }
             return Json(new { loggedIn = false }, JsonRequestBehavior.AllowGet);
         }
 
-        private void SetAuthCookie(string userId, string username)
+        private void SetAuthCookie(string userId, string username, string role)
         {
             var cookie = new HttpCookie("AuthUser", userId)
             {
@@ -80,11 +82,18 @@ namespace ControlActividades.Controllers
                 Path = "/"
             };
             Response.Cookies.Add(userCookie);
+            var roleCookie = new HttpCookie("AuthRole", role ?? "user")
+            {
+                HttpOnly = true,
+                SameSite = SameSiteMode.Lax,
+                Path = "/"
+            };
+            Response.Cookies.Add(roleCookie);
         }
 
         private void ClearAuthCookie()
         {
-            foreach (var name in new[] { "AuthUser", "AuthUsername" })
+            foreach (var name in new[] { "AuthUser", "AuthUsername", "AuthRole" })
             {
                 if (Request.Cookies[name] != null)
                 {
@@ -110,6 +119,11 @@ namespace ControlActividades.Controllers
         internal static string GetUsernameFromCookie()
         {
             return System.Web.HttpContext.Current?.Request.Cookies["AuthUsername"]?.Value ?? "";
+        }
+
+        internal static string GetRoleFromCookie()
+        {
+            return System.Web.HttpContext.Current?.Request.Cookies["AuthRole"]?.Value ?? "user";
         }
     }
 }

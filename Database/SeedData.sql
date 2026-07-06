@@ -3,12 +3,12 @@ GO
 
 IF NOT EXISTS (SELECT 1 FROM [dbo].[Users])
 BEGIN
-    INSERT INTO [dbo].[Users] ([Username], [PasswordHash]) VALUES
-            ('lhernanb', 'Q29udHJvbEFjdGl2aWRhZGVzX1NhbHRfMjAyNA==:2KPK77F3FEpttLv5eAbc+rOjXbb0JT32ExmYscFdvgQ='),
-            ('dgarcia', 'Q29udHJvbEFjdGl2aWRhZGVzX1NhbHRfMjAyNA==:swpoAfSo5EDvYekt2Xd19i60FVOtRgk/msphOvUlN/A='),
-            ('creyesg', 'Q29udHJvbEFjdGl2aWRhZGVzX1NhbHRfMjAyNA==:0GLHagbmdEnnOLbn6E9Xcnc2g3OgdoeZYZyGIP1/b1w='),
-            ('JCABELLS', 'Q29udHJvbEFjdGl2aWRhZGVzX1NhbHRfMjAyNA==:NPrA69TUmkdQsFdh/Yy24orwU5adhhcYuqjZrFSOpNc='),
-            ('OQUINTAA', 'Q29udHJvbEFjdGl2aWRhZGVzX1NhbHRfMjAyNA==:48SR/76AMUVs7cshEeUNqx+2p+ynSQVYUuv4EpprpKs=');
+    INSERT INTO [dbo].[Users] ([Username], [PasswordHash], [Role]) VALUES
+            ('lhernanb', 'Q29udHJvbEFjdGl2aWRhZGVzX1NhbHRfMjAyNA==:2KPK77F3FEpttLv5eAbc+rOjXbb0JT32ExmYscFdvgQ=', 'admin'),
+            ('dgarcia', 'Q29udHJvbEFjdGl2aWRhZGVzX1NhbHRfMjAyNA==:swpoAfSo5EDvYekt2Xd19i60FVOtRgk/msphOvUlN/A=', 'user'),
+            ('creyesg', 'Q29udHJvbEFjdGl2aWRhZGVzX1NhbHRfMjAyNA==:0GLHagbmdEnnOLbn6E9Xcnc2g3OgdoeZYZyGIP1/b1w=', 'user'),
+            ('JCABELLS', 'Q29udHJvbEFjdGl2aWRhZGVzX1NhbHRfMjAyNA==:NPrA69TUmkdQsFdh/Yy24orwU5adhhcYuqjZrFSOpNc=', 'user'),
+            ('OQUINTAA', 'Q29udHJvbEFjdGl2aWRhZGVzX1NhbHRfMjAyNA==:48SR/76AMUVs7cshEeUNqx+2p+ynSQVYUuv4EpprpKs=', 'user');
     PRINT 'Default users inserted with hashed passwords';
 END
 ELSE
@@ -21,6 +21,10 @@ UPDATE [dbo].[Users] SET [PasswordHash] = CASE [Username]
         WHEN 'creyesg' THEN 'Q29udHJvbEFjdGl2aWRhZGVzX1NhbHRfMjAyNA==:0GLHagbmdEnnOLbn6E9Xcnc2g3OgdoeZYZyGIP1/b1w='
         WHEN 'JCABELLS' THEN 'Q29udHJvbEFjdGl2aWRhZGVzX1NhbHRfMjAyNA==:NPrA69TUmkdQsFdh/Yy24orwU5adhhcYuqjZrFSOpNc='
         WHEN 'OQUINTAA' THEN 'Q29udHJvbEFjdGl2aWRhZGVzX1NhbHRfMjAyNA==:48SR/76AMUVs7cshEeUNqx+2p+ynSQVYUuv4EpprpKs='
+    END,
+    [Role] = CASE [Username]
+        WHEN 'lhernanb' THEN 'admin'
+        ELSE 'user'
     END
 WHERE [PasswordHash] = '' OR [PasswordHash] IS NULL;
 
